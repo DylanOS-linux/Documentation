@@ -1,22 +1,24 @@
-<div align="center">
+<h1 align="center">DylanOS Documentation</h1>
 
-# Documentación de DylanOS
+<p align="center">
+  <strong>Guías, arquitectura, manuales, especificaciones y recursos informativos del ecosistema DylanOS.</strong><br>
+  Documentación técnica organizada por tema y sincronizada con el desarrollo del sistema.
+</p>
 
-**Guías, arquitectura, manuales, especificaciones y recursos informativos del ecosistema DylanOS.**
+<p align="center">
+  <a href="https://www.debian.org/"><img src="https://img.shields.io/badge/base-Debian%2013-A81D33?style=flat-square&logo=debian&logoColor=white" alt="Base Debian 13"></a>
+  <a href="https://kde.org/plasma-desktop/"><img src="https://img.shields.io/badge/escritorio-KDE%20Plasma%206-1D99F3?style=flat-square&logo=kde&logoColor=white" alt="Escritorio KDE Plasma 6"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/licencia-GPL--3.0--or--later-blue?style=flat-square" alt="Licencia GPL-3.0-or-later"></a>
+</p>
 
-[![Base](https://img.shields.io/badge/base-Debian%2013-A81D33?style=flat-square&logo=debian&logoColor=white)](https://www.debian.org/)
-[![Escritorio](https://img.shields.io/badge/escritorio-KDE%20Plasma%206-1D99F3?style=flat-square&logo=kde&logoColor=white)](https://kde.org/plasma-desktop/)
-[![Qt](https://img.shields.io/badge/Qt-6.8-41CD52?style=flat-square&logo=qt&logoColor=white)](https://www.qt.io/)
-[![Licencia](https://img.shields.io/badge/licencia-GPL--3.0--or--later-blue?style=flat-square)](https://github.com/dylanneymarmontalvo2014-lgtm/DylanOS/blob/development/LICENSE)
-
-</div>
+---
 
 <img src="https://raw.githubusercontent.com/dylanneymarmontalvo2014-lgtm/DylanOS/development/previews/DylanOS%20shell/escritorio_preview.png" alt="Vista de referencia del escritorio DylanOS Crimson" width="100%">
 
 > [!NOTE]
-> Las imágenes de `previews/` son referencias visuales del objetivo del proyecto. Pueden incluir diseños en progreso y no demuestran por sí solas que una función esté implementada en la ISO.
+> Las imágenes de referencia son material visual del objetivo del proyecto. Pueden incluir diseños en progreso y no demuestran por sí solas que una función esté implementada en la ISO.
 
-## Sobre este repositorio
+## Acerca de este repositorio
 
 Este es el repositorio oficial de documentación de DylanOS. Reúne en un solo lugar la documentación técnica que antes vivía dispersa en el repositorio de código, organizada por tema y con enlaces normalizados.
 
@@ -52,7 +54,7 @@ La ISO de trabajo (`DylanOS-1.1.0-pre-beta-amd64.iso`) es un artefacto local de 
 | Consultar cambios recientes | [Changelog](desarrollo/changelog.md) |
 | Revisar informes y decisiones pasadas | [Auditorías](auditorias/README.md) |
 
-## Navegación
+## Contenido
 
 | Sección | Contenido |
 |---|---|
@@ -80,7 +82,7 @@ DylanOS combina una base Debian estable con KDE Plasma y una capa propia de apli
 
 Para el detalle de cada pieza, consulta la [arquitectura](arquitectura/README.md) y la [guía de uso](guia/guia-de-uso.md).
 
-## Estructura del repositorio
+## Estructura
 
 ```text
 Documentation/
@@ -121,21 +123,33 @@ Este repositorio es la vista organizada de la documentación de DylanOS. Para ac
 
 No se deben introducir afirmaciones nuevas que no estén respaldadas por el código o por una prueba verificable.
 
-## Enlaces
-
-- [Repositorio de código DylanOS](https://github.com/dylanneymarmontalvo2014-lgtm/DylanOS)
-- [Issues](https://github.com/dylanneymarmontalvo2014-lgtm/DylanOS/issues)
-- [Pull requests](https://github.com/dylanneymarmontalvo2014-lgtm/DylanOS/pulls)
-- [Releases](https://github.com/dylanneymarmontalvo2014-lgtm/DylanOS/releases)
-- [Documentación en el repositorio de código](https://github.com/dylanneymarmontalvo2014-lgtm/DylanOS/tree/development/docs)
-- [Repositorio de documentación](https://github.com/DylanOS-linux/Documentation)
-
 ## Contribuir
 
 Las correcciones, aclaraciones y mejoras de documentación son bienvenidas. Abre un issue o un pull request describiendo el problema, la sección afectada y la fuente que respalda el cambio. Para cambios de código o de producto, sigue la [guía de contribución](desarrollo/contribuir.md).
 
 ## Licencia
 
-La documentación se distribuye bajo la [GNU General Public License v3.0 o posterior](https://github.com/dylanneymarmontalvo2014-lgtm/DylanOS/blob/development/LICENSE), la misma licencia del proyecto DylanOS, salvo que un documento indique otra cosa.
+La documentación se distribuye bajo la [GNU General Public License v3.0 o posterior](./LICENSE), la misma licencia del proyecto DylanOS, salvo que un documento indique otra cosa.
 
 Los recursos de terceros conservan sus licencias originales. DylanOS Browser mantiene la Mozilla Public License 2.0 (`MPL-2.0`) y sus avisos de autoría. Consulta [Licencias de recursos](licencias/assets.md) para la procedencia detallada.
+
+## Ecosistema DylanOS
+
+| Repositorio | Contenido |
+|---|---|
+| [DylanOS](https://github.com/dylanneymarmontalvo2014-lgtm/DylanOS) | Sistema operativo y desarrollo principal |
+| [Apps](https://github.com/DylanOS-linux/Apps) | Aplicaciones y componentes |
+| [Branding](https://github.com/DylanOS-linux/Branding) | Identidad visual y recursos oficiales |
+| [Documentation](https://github.com/DylanOS-linux/Documentation) | Documentación técnica |
+| [Temas](https://github.com/DylanOS-linux/Temas) | Temas y personalización |
+
+Enlaces del proyecto:
+
+- [Issues](https://github.com/dylanneymarmontalvo2014-lgtm/DylanOS/issues)
+- [Pull requests](https://github.com/dylanneymarmontalvo2014-lgtm/DylanOS/pulls)
+- [Releases](https://github.com/dylanneymarmontalvo2014-lgtm/DylanOS/releases)
+- [Documentación en el repositorio de código](https://github.com/dylanneymarmontalvo2014-lgtm/DylanOS/tree/development/docs)
+
+---
+
+<p align="center"><sub>DylanOS — Tu sistema, tu experiencia.</sub></p>

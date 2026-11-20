@@ -1,0 +1,106 @@
+# Changelog
+
+Todos los cambios relevantes de DylanOS se registran en este archivo. La intención es mantener un histórico claro de la evolución del escritorio, el branding y la plataforma de instalación.
+
+## [Unreleased] - development
+
+### Corregido
+
+- Store/Explorer: preservar la caché AppStream tras limpiar listas APT e instalar el módulo QML QtQuick.Shapes requerido por el Explorer.
+- Build: mover el lock compartido fuera de work y recuperar la escritura en el directorio antes de elevar privilegios.
+- Build: restaurar permisos ejecutables de los puntos de entrada de preparación, QA y detección del host.
+- Centro de Control: corregir el ID del KCM de ahorro de energía para que abra el módulo existente.
+- Dock: evitar recorte/solapamiento si iconSize configurado supera hoverSize; el panel reserva siempre la extensión mayor.
+- Configuración: corregir los nombres de dispositivos de audio; `pactl list short` entregaba el estado como descripción en los selectores.
+- Instalador: no simular como exitosa una instalación cuando no responde el backend; reconciliar el estado real y mostrar error si no se confirma.
+- Spotlight: reemplazar `eval` sin límite en el cálculo en línea; el evaluador nuevo limita longitud, complejidad, exponentes y magnitud para evitar bloqueos/agotar memoria por consultas como `9**99999999`.
+- App Center: recalcular el contenido y páginas al cambiar el tamaño de la ventana/resolución, ya que pageSize depende de ancho y alto.
+- Seguridad del instalador: bloquear peticiones con origen externo/DNS rebinding a la API loopback y quitar CORS comodín que permitía a sitios ajenos leer información local del sistema.
+- Instalador: retirar del sistema instalado el sudoers `NOPASSWD` y el autologin SDDM de la sesión live, conservando la marca Crimson; aplica también si el usuario instalado se llama `dylan`.
+- Release: al etiquetar `vMAJOR.MINOR.PATCH`, compilar ISO versionada amd64, verificar checksum/estructura y arranque live QEMU, y adjuntar ISO + SHA-256 a una GitHub Release; fallos previos bloquean la publicación.
+- Configuración/Sonido: traducir el nombre interno de salida/entrada al nombre amigable de cada dispositivo; el selector ahora muestra y marca correctamente el dispositivo predeterminado.
+- Spotlight: filtrar correctamente las acciones Web/Calcular, conservar la acción web entre muchos resultados y retirar el contador ficticio de archivos.
+- Spotlight: importar explícitamente `urllib.parse.quote` para codificar la búsqueda web y evitar una excepción al escribir una consulta.
+- Dock: corregir el ancho del applet para que los iconos fijados se muestren; el cálculo previo referenciaba un id QML fuera de su ámbito.
+- Centro de Control: quitar asignaciones QML no válidas `Accessible.value` de los sliders de volumen/micrófono que impedían cargar el plasmoid; se conserva el nombre accesible y el propio Slider anuncia su valor.
+- SDDM: ajustar el ancho de la tarjeta de acceso al formulario escalado para
+  que no quede sobredimensionada en pantallas estrechas.
+
+- CI: quitar las comillas invertidas del mensaje de error de Compose en `init.sh`; ShellCheck las interpretaba como sustitución de comando y hacía fallar `scripts/check.sh`.
+
+- Builder Docker: aceptar Docker Compose v2 como plugin o ejecutable standalone, validar la versión y rechazar v1. La construcción del builder usa el modo detectado; agregadas pruebas automatizadas sin daemon real.
+
+- Scripts/pruebas: sincronizar el contrato de Kitty con su configuración vigente (opacidad 0.50 y padding 20 24); evita que `scripts/check.sh` falle por valores obsoletos sin cambiar la configuración de Kitty.
+
+- Configuración: conservar la pestaña activa en cada entrada del historial. Al volver desde otra sección, «Aplicaciones → Predeterminadas» ya no regresaba a «Instaladas» porque el historial solo guardaba la ruta.
+
+- Configuración/Energía: incluir `power-profiles-daemon` en el perfil base. La
+  interfaz consultaba `powerprofilesctl` y permitía cambiar perfiles, pero la
+  imagen no instalaba el backend que proporciona el comando; ahora queda
+  incluido en el conjunto de paquetes de la imagen.
+
+- Spotlight: lanzar entradas de aplicaciones `.desktop` con argv y sin `shell=True`; los metacaracteres no se interpretan como código de shell y las comillas malformadas se rechazan. Se añadieron pruebas para argumentos citados, códigos de archivo y separadores de shell.
+
+
+- Staging: corregir el nombre del archivo de asociaciones MIME del sistema a `mimeapps.list` y terminar las asociaciones con `;`; `mimeapps.info` era ignorado por XDG, por lo que el Explorer no se establecía como aplicación predeterminada a nivel del sistema.
+
+- Instalador: limpiar el contenido previo de la partición raíz ext4 elegida en modo manual antes de extraer `filesystem.squashfs`; evita instalaciones híbridas con archivos obsoletos que `unsquashfs -f` no elimina. La limpieza no sigue enlaces simbólicos.
+
+### Añadido
+
+- Dock predeterminado: integrar el dock propio DylanOS y añadir ampliación
+  gradual de los iconos cercanos al cursor; se conservan los lanzadores y la
+  papelera.
+
+- DylanOS Widgets: sistema de widgets de escritorio sobre plasmoides nativos de Plasma 6. En la sesión live no se muestra ninguno; en un sistema instalado, el primer inicio de sesión de cada usuario crea una sola vez Reloj (1×1) y Calendario (1×1) arriba, con Clima debajo a doble ancho y la misma altura. La decisión live/instalado la toma `scripts/dylanos-widget-layout` con las mismas rutas que usa el instalador, porque `layout.js` se ejecuta también en live y el squashfs es idéntico. Incluye la galería `dylanos-widgets` y los **20 widgets** como paquetes propios (Batería por /sys, CPU/RAM por /proc, Red por nmcli, Notas y Tareas persistentes, Reproductor MPRIS, Calculadora con evaluador sin `eval`, Accesos por gtk-launch, Fotos, Captura, Portapapeles, Reloj mundial, Pomodoro, Disco, Actualizaciones por `apt-get -s`, DylanOS Info y Próximo evento leyendo un `.ics` local). Las funciones de datos y el evaluador se ejecutan con `node` en `scripts/tests/test_widgets.py`. Añade `qml6-module-qt-labs-folderlistmodel` y `xclip` al perfil base (verificados en trixie). Documentación en `docs/widgets.md` y auditoría en `docs/widgets-auditoria.md`. Revisión visual con render real: se corrigieron el desbordamiento del calendario en tamaño 1×1 (el día 30 salía de la tarjeta), la cabecera de mes truncada, las iniciales repetidas de Accesos directos y, en el Reloj mundial, el uso de `Intl`/`TZInfo` (no disponibles en el motor QML) sustituido por `date` con validación contra `/usr/share/zoneinfo`, que evita mostrar la hora UTC como si fuera local. Capturas en `artifacts/widgets-qa/`.
+
+- Perfil IoT seleccionable con `--iot`: Arduino IDE/AVR, OpenOCD, herramientas ESP/STM32, MQTT, CAN, serial, I2C/GPIO y análisis lógico; broker Mosquitto instalado pero deshabilitado por defecto. La cuenta instalada recibe grupos de acceso al hardware cuando están disponibles.
+
+- Comando `about`, generado por staging y conectado a `MAINTAINERS.txt`.
+- Calendario interactivo del Dashboard, silencio de audio en el Centro de Control y guía de uso/capacidades de las aplicaciones.
+- Documentación de componentes Workspace, Spotlight, App Center y Calculator; se precisan las limitaciones reales del instalador y las categorías incompletas de Spotlight.
+- Control de volumen y silencio del micrófono predeterminado en el Centro de Control mediante `pactl`, con estado no disponible cuando no hay fuente de entrada.
+- Dashboard 0.3.0: porcentajes claros y barras Crimson con animación suave y descripciones accesibles para RAM, CPU y filesystem raíz.
+- Dashboard 0.3.1: estados de hoy/selección accesibles y transiciones suaves del calendario.
+- Dashboard 0.4.0: botón para abrir el Monitor del sistema KDE y ver procesos/métricas detalladas.
+- Dashboard 0.4.1: acción «Actualizar» para solicitar métricas al instante y mostrar la hora de consulta.
+- Dashboard 0.5.0: gráfica de tendencia de CPU basada en hasta 24 muestras reales de `/proc/stat`.
+- Centro de Control DylanOS 0.4.0: modelo de notificaciones compartido y sondeos detenidos cuando el panel está cerrado.
+- Centro de Control DylanOS 0.3.0: superficies externas con transparencia moderada y contraste interior conservado.
+- Dashboard 0.7.0: temporizador Pomodoro de enfoque/descanso y acabado glass sutil con reflejo superior; superficies del Centro de Control y Notificaciones con transparencia moderada.
+- Armonización visual de Configuration, Explorer y Workspace con los tokens Crimson oficiales y estados hover/pressed coherentes.
+
+### Cambiado
+
+- El índice de documentación enlaza las nuevas guías y diferencia las guías activas de los informes históricos.
+
+## [1.0.0-crimson] - 2026-10-18
+
+### Añadido
+
+- Identidad visual DylanOS Crimson consolidada en el repositorio.
+- Documentación principal reescrita para reflejar el estado real del proyecto.
+- Arquitectura del sistema con shell de trabajo, explorador, tienda y instalador propios.
+- Estructura de documentación con índice operativo en `docs/`.
+
+### Cambiado
+
+- Se eliminó la ambigüedad entre la documentación histórica y la documentación activa.
+- Se actualizó la referencia a aplicaciones y sectores del sistema para alinearlos con `dylanos-store`, `dylanos-explorer` y `installer/dylanos-installer`.
+- Se reforzó la consistencia visual y de marca con los colores oficiales y la referencia Crimson.
+
+### Corregido
+
+- Enlaces y referencias rotos en la documentación principal.
+- Descripciones obsoletas que hablaban de soluciones antiguas o de componentes ya no vigentes.
+
+## [0.1.0-alpha] - En desarrollo inicial
+
+### Añadido
+
+- Creación del repositorio oficial.
+- Estructura base del proyecto.
+- Primeros recursos de documentación.
+- Diseño visual de escritorio y flujo de construcción al inicio del proyecto.
+- Build: validar `--version` antes de preparar el instalador y propagar la versión al proceso privilegiado; evita que el build versionado de tags falle por `VERSION` sin inicializar y evita side effects de build para versiones inválidas.
+- Instalador: iniciar la selección de disco vacía, exigir detección efectiva y permitir reintentar la consulta; el frontend descarta filas vacías/ficticias. El backend rechaza instalaciones sin root, con destino no enumerado/no block device o sobre el medio live antes de ejecutar comandos de particionado; ya no puede convertir una vista previa en instalación completada.

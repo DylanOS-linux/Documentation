@@ -1,0 +1,238 @@
+# Arquitectura de DylanOS
+
+DylanOS Crimson 1.1 pre-beta es una distribución basada en Debian 13 (trixie) con KDE Plasma 6,
+Qt 6/QML y una capa de aplicaciones y recursos visuales propios. Este documento describe
+la arquitectura **real** del repositorio tras la iteración de ingeniería de 2026-10.
+
+## 1. Capas del sistema
+
+1. **Base**: Debian trixie + systemd + KDE Plasma 6 (kwin, kio, kconfig, KCM), Qt 6.8.
+2. **Aplicaciones nativas DylanOS** (C++/QML o Python/QML, todas con UI propia):
+   `dylanos` (workspace, PySide6, 6 páginas), `dylanos-explorer` (gestor de archivos
+   único del sistema), `dylanos-store` (tienda, fork de Discover con libdiscover real),
+   `dylanos-configuration` (centro de configuración único), `dylanos-app-center`,
+   `dylanos-calculator`, `dylanos-spotlight`, `dylanos-installer`, `dylanos-process`
+   (monitor real de procesos y recursos, con núcleo Rust y UI Qt6/QML propia) y
+   `dylanos-browser`, fork Gecko/Zen empaquetado
+   como navegador predeterminado a partir de un candidato local verificado.
+3. **Shell del escritorio**: paneles Plasma generados por el layout del look-and-feel
+   (`org.dylanos.crimson`) con plasmoids propios (`com.dylanos.activeapp`,
+   `com.dylanos.search`, `com.dylanos.controlcenter`) y `com.dylanos.dock` como
+   dock inferior con zoom suave al pasar el cursor. El layout inicial no añade widgets
+   sobre el escritorio; el antiguo `com.dylanos.dashboard` permanece como fuente histórica,
+   pero staging lo elimina de la imagen. **DylanOS Widgets** añade widgets nativos
+   (`com.dylanos.widgets.{clock,calendar,weather}`) solo en sistema instalado: la
+   sesión live queda sin ninguno y, en el primer inicio de sesión de cada usuario,
+   `scripts/dylanos-widget-layout` crea una única vez Reloj y Calendario arriba y
+   Clima debajo a doble ancho. La decisión no puede vivir en `layout.js` (se ejecuta
+   también en live) ni en la imagen (el squashfs es el mismo). Ver [Widgets](widgets.md).
+   El Centro de Control integra notificaciones,
+   interruptores y audio con datos locales/de Plasma. Ver [DylanOS Shell](dylanos-shell.md)
+   y la [guía de uso](../guia/guia-de-uso.md) para disponibilidad y límites.
+4. **Identidad visual**: `branding/` + `themes/` (aurorae, SDDM, Plymouth, GRUB, GTK,
+   color-schemes, look-and-feel) y **Crimson Glass**, coordinado sin daemon por
+   DylanOS Configuration. Ver [Crimson Glass](crimson-glass.md).
+
+## 2. Ventanas y KWin (ciclo de vida)
+
+- **Apps DylanOS**: ventanas `Qt.FramelessWindowHint` con controles integrados en el
+  frontend (semáforos cerrar/minimizar/maximizar a la izquierda + `startSystemMove()` para
+  arrastrar). App Center es la excepción deliberada: funciona como superposición a pantalla
+  completa, sin semáforos ni redimensionado, y se cierra con Escape o al pulsar el fondo.
+  Ninguna app DylanOS muestra la decoración tradicional. La identidad de cada
+  ventana se fija con `QGuiApplication::setDesktopFileName("<id>")` (Wayland app_id) y
+  `StartupWMClass` (X11); el `.desktop` de cada app usa el MISMO id (`org.dylanos.*`).
+- **Apps de terceros** (Kitty, Kate…): decoración SSD de KWin con el tema
+  **Aurorae DylanOS-Crimson** (regenerable: `python3 scripts/lib/generate-theme.py aurorae`):
+  marco negro `#0f0f11` con esquinas redondeadas, título tenue centrado y botones semáforo
+  a la izquierda (`kwinrc`: `ButtonsOnLeft=XIA`). No existe banda gris de decoración.
+- **Acabado Crimson-glass** (predeterminado del ISO): el mismo mecanismo aurorae, pero con
+  los parches `decoration-*` del SVG a `fill-opacity` 0,42 (activo) / 0,55 (inactivo) sobre
+  degradados crimson y una línea especular en la banda `top`. KWin 6.3 solo desenfoca donde
+  existe una *blur region*, y esa región es el `decorationMask` que la decoración construye
+  desde los ids `mask-*`; por eso la máscara se mantiene opaca y ningún paquete nuevo entra
+  (sin Kvantum). El perfil vive en `configs/plasma/skel/kwinrc`: `[Plugins]
+  blurEnabled/translucencyEnabled`, `[Effect-blur] BlurStrength=15 NoiseStrength=4` y
+  `[Effect-translucency]` (Inactive 80, Dialogs 85, Menus 80…). BlurStrength solo admite
+  1-15 (rango del slider de `blur.kcfg`): un valor mayor hace que `BlurEffect::reconfigure`
+  lea fuera del vector `blurStrengthValues[]` y caiga con SIGSEGV. Grupos en minúscula: son
+  los
+  nombres con los que `blur.kcfg` y `ScriptedEffect` leen kwinrc, y los grupos de efectos del
+  `contents/defaults` del look-and-feel los ignora `LookAndFeelManager`, así que ahí solo se
+  fija la decoración. `CrimsonGlassService` respalda el estado anterior para que desactivar
+  restaure un estado seguro. Generar con `python3 scripts/lib/generate-theme.py aurorae-glass`.
+  Límites: las apps con decoración de cliente (Gecko/GTK CSD) no reciben marco de servidor
+  que translucir, y KWin 6.3 no transluce el cuerpo de la ventana activa de terceros; el
+  selector (`dylanos-configuration` → Personalización → Apariencia) aplica y descarga el
+  efecto sin cerrar sesión.
+- **Barra superior (menú)**: panel Plasma con `hiding=letwindowscover` — KWin cubre la
+  barra solo con ventanas a **pantalla completa real** (integración con el gestor de
+  ventanas, sin temporizadores ni heurísticas de tamaño). Ventanas maximizadas NO la cubren.
+- **Dock inferior**: panel flotante `dodgewindows` centrado con el plasmoid `com.dylanos.dock` y la papelera. El applet usa `TaskManager.TasksModel`; al pasar el cursor agranda el icono enfocado y escala suavemente los dos vecinos a cada lado.
+
+## 3. DylanOS Explorer (apps/dylanos-explorer)
+
+Único explorador de archivos del sistema. Motor = **KIO de KDE** (el mismo de Dolphin):
+`KDirLister` (incluye `trash:/`, `remote:/`, `smb:/`, `mtp:/`), `KFilePlacesModel` +
+montaje Solid, papelera con deshacer (`KIO::FileUndoManager`, Ctrl+Z), apertura con
+`KIO::OpenUrlJob`. Operaciones reales en `src/services/FileOperations.cpp` (puro Qt Core,
+sin shell): crear carpeta, **crear archivo**, renombrar, copiar/mover con progreso y
+cancelación, papelera (estándar freedesktop con `.trashinfo`), restaurar, vaciar,
+protección de rutas del sistema. El paquete `dolphin` no se envía: `build.sh` lo purga
+(entra como dependencia del metapaquete `kde-plasma-desktop`).
+
+El acceso "Archivos" del menú ejecuta siempre el binario real (`dylanos-explorer %U`):
+`scripts/stage.py` elimina la entrada obsoleta `org.dylanos.files.desktop` (abría el
+workspace en su página de archivos), copia el `.desktop` canónico de la app como
+fallback previo al build y asocia `inode/directory` al Explorer en el `mimeapps.list`
+del skel (el valor anterior apuntaba a dolphin, que no se envía).
+
+QA: `dylanos-explorer --screenshot out.png --size 1384x805 [--path dir]` (offscreen en el
+chroot, con DBus); tests C++ reales en `tests/tst_fileoperations.cpp` vía ctest.
+
+## 4. DylanOS Configuration (apps/dylanos-configuration)
+
+Centro de configuración **único**. 16 páginas QML base del prototipo aprobado sobre
+`SystemService` (C++), que usa las herramientas reales de KDE/Linux: `kcmshell6`
+(módulos KCM nativos), `plasma-apply-*`, `nmcli`, `pactl`, `bluetoothctl`,
+`powerprofilesctl`, `timedatectl`, `/proc`-`/sys`, QSettings/KConfig. No hay simulaciones.
+Los centros duplicados (systemsettings, kinfocenter, ajustes de otros DE) se ocultan con
+`NoDisplay` en `scripts/stage.py` (el paquete `systemsettings` permanece: aporta
+`kcmshell6`). Notas QML críticas: `Qt` parsea colores de 8 dígitos como `#AARRGGBB`, no
+`#RRGGBBAA` (ese malentendido causó la pantalla negra de la 1.0 beta); en Items hijos,
+`state` sin calificar resuelve a la propiedad integrada `Item.state` — usar `root.state`.
+
+`sysInfo()` lee el hardware con cadena de respaldo: el kernel omite «model name» en
+`/proc/cpuinfo` cuando la marca del CPUID está vacía (p. ej. QEMU TCG con `-cpu max`), así
+que tras «model name»/«Hardware» se prueba `lscpu` («Model name:») y como último recurso
+se muestra «Procesador de N núcleos» (núcleos online). La RAM se muestra redondeada:
+`MemTotal` recorta la memoria que reserva el firmware (8 GB físicos se leen como ~7,6 GiB),
+así que se ajusta a la potencia de dos más próxima si queda a ≤10 % (7,6→8, 15,4→16,
+11,6→12; por debajo de 1 GB se muestra con un decimal).
+
+La ruta adicional **Personalización → Crimson Glass** expone
+`CrimsonGlassService`: persiste un perfil validado, detecta KWin/renderizado por
+software, genera un tema Plasma por usuario y aplica efectos, esquema Qt y tema
+GTK. Antes de tocar configuración externa crea un respaldo por clave. El
+autostart usa `--apply-crimson-glass --headless` y termina; no añade un servicio
+residente.
+
+La sección **Gaming** añade el `GamingService` (catálogo declarativo, detección
+de hardware, PackageKit/Flathub y cinco perfiles reversibles). El estado del
+perfil se comparte en `~/.local/state/dylanos/gaming/backup.json`; el Centro de
+Control usa modos de línea de comandos limitados para aplicar, consultar y
+restaurar ese mismo estado. No existe todavía un gestor genérico de perfiles de
+usuario: los perfiles de `packages/` son conjuntos de paquetes del sistema y no
+se presentan como ese gestor. El catálogo y el helper Polkit se copian durante
+staging, mientras que las aplicaciones Gaming no se agregan al ISO base.
+Detalles y limitaciones: [DylanOS Gaming](../guia/gaming.md).
+
+## 5. Temas GTK y Qt
+
+- **GTK**: `themes/gtk/DylanOS-Crimson` y `-Light` (GTK3 + GTK4, CSS completo: menús,
+  botones, campos, listas, scrollbars, diálogos, estados hover/focus/active/disabled,
+  `windowcontrols` semáforo). Se aplican vía `etc/skel/.config/gtk-{3,4}.settings.ini`
+  (`gtk-theme-name`) y se sincronizan con `kde-config-gtk-style`. Validación de errores
+  de CSS: `GTK_THEME=DylanOS-Crimson zenity` / `nautilus` y comprobar stderr.
+- **Crimson Glass**: `DylanOS-Crimson-Glass` aporta fondos Plasma con relleno
+  oscuro translúcido, borde Crimson, reflejo superior y fallback al tema base.
+  El perfil dinámico se escribe en `~/.local/share`, nunca en `/usr/share`.
+- **Qt/KDE**: color-schemes DylanOS{Dark,Light}, aurorae, look-and-feel `org.dylanos.crimson`
+  (layout, splash, defaults). Las apps Qt NO usan el tema GTK: usan el esquema de colores KDE.
+- La DylanOS Store mantiene su identidad aprobada y no se re-tematiza desde fuera.
+
+## 6. Paquetes y decisiones de empaquetado
+
+- `packages/default`: base + KDE + apps predeterminadas. **Sin `dolphin` ni `kcalc`**
+  (Explorer y `dylanos-calculator` son los oficiales; el build los purga para chroots
+  reutilizados). `systemsettings` se conserva (provee `kcmshell6`) pero oculto del menú.
+- La terminal única es **DylanOS Console**, una distribución de Kitty identificada por
+  `org.dylanos.console`. Konsole se purga al final del build. Kitty usa la paleta Crimson,
+  transparencia/blur y 50.000 líneas; el fork mantenido `neowofetch` de Debian se expone
+  mediante el wrapper estable `neofetch` y muestra `branding/logo.png` con el protocolo
+  gráfico de Kitty. El Bash interactivo ofrece sugerencias atenuadas desde el
+  historial o los comandos disponibles y las acepta con Tab o flecha derecha.
+- `packages/development`: incluye **Visual Studio Code** (`code`) desde el repo apt
+  oficial de Microsoft (`packages.microsoft.com/repos/vscode`, suite `stable`, keyring
+  propio). VSCodium fue retirado (icono incorrecto, fuente no legítima); `setup-repos.sh`
+  es idempotente y borra el repo antiguo. La licencia del binario es la de Microsoft (el
+  fuente "Code - OSS" es MIT); véase [Licencias de recursos](../licencias/assets.md).
+- KWallet se mantiene: `plasma-nm` lo usa para guardar credenciales Wi-Fi (servicio
+  requerido por Plasma); no se elimina por nombre.
+- El ISO compila las apps nativas dentro del chroot y purga los `-dev` exclusivos al final.
+
+## 7. Compilación, instalación y QA
+
+    bash scripts/build.sh            # debootstrap + apt + stage + builds (chroot aislado)
+    bash scripts/iso.sh              # squashfs + GRUB → DylanOS-1.1.0-pre-beta-amd64.iso
+    bash scripts/test_QEMU.sh        # VM con la ISO (KVM o TCG)
+    DYLANOS_PYTHON=/tmp/opencode/venv/bin/python bash scripts/check.sh   # QA total
+
+`check.sh` valida sintaxis bash + shellcheck, `test_packages.sh`, unittest completo por
+módulo, `compileall`, staging con `desktop-file-validate` y la carga QML offscreen de las
+6 páginas del workspace. QA adicionales: capturas offscreen de las 16 rutas base de
+Configuration y Crimson Glass (`--screenshot`), Test Greeter de SDDM con captura opt-in
+(`theme.conf: screenshot=<ruta>`) y métricas de fidelidad en `artifacts/sddm-qa/`.
+`iso.sh` re-ejecuta `scripts/stage.py` sobre el chroot antes de crear el squashfs, de
+modo que la ISO refleje siempre el estado vigente del repositorio (los rebuilds manuales
+de una sola app dejan el staging anterior desactualizado).
+
+## 8. Diagnóstico rápido
+
+- **App QML en negro**: revisar colores de 8 dígitos (orden `#AARRGGBB`) y ventana
+  transparente sin contenido opaco detrás.
+- **"Type X unavailable"**: el componente no está en `QML_FILES` del `qt_add_qml_module`,
+  o redefine una propiedad FINAL (p. ej. `dim` de Popup).
+- **"Unable to assign [undefined] to bool"**: binding sobre claves ausentes de un mapa
+  (inicializar el `var` y devolver defaults desde C++) o `state` sin calificar.
+- **App sin icono correcto en el dock**: `setDesktopFileName` debe coincidir con el nombre
+  del `.desktop` (sin extensión) en Wayland.
+- **SDDM en negro/no carga**: `sddm-greeter --test-mode --theme <ruta>` con
+  `QT_QPA_PLATFORM=offscreen` y leer stderr (ReferenceError/TypeError).
+- **Boot hang**: [Auditoría de arranque](../auditorias/auditoria-boot-hang-initramfs.md) y [solución de arranque y GRUB](../guia/solucion-boot-hang-y-grub.md).
+
+## 9. Limitaciones y pendientes
+
+- La sesión live arranca en X11 (`plasmax11`) por compatibilidad con VMs sin GPU; el
+  sistema instalado también soporta Wayland (los ids de app ya son correctos en ambos).
+- La integración KCM de Configuration abre módulos nativos con `kcmshell6`; no re-implementa
+  cada módulo en QML (decisión: reutilizar el motor de KDE con UI propia DylanOS).
+- Las tarjetas del SDDM (clima, reproducción, recordatorios) son contenido de referencia:
+  un greeter no tiene acceso a esos datos; reloj, calendario y usuarios son reales.
+- `apps/archivos/` es un prototipo histórico que no se envía en el ISO; su launcher vigente delega a `apps/workspace/`.
+- `apps/dylanos-spotlight/` es una app Python/PySide6 con UI QML; `apps/workspace/` también usa Python/PySide6. La línea base de arranque y RSS, incluido el alias histórico `archivos`, se mide con el método documentado en la [línea base de apps Python](../desarrollo/benchmarks/linea-base-apps-python.md); no se afirman mejoras ni migraciones hasta medir el piloto por separado.
+
+## 10. Referencias
+
+- Mapa operativo para agentes IA: `AGENTS.md` del repositorio DylanOS (memoria persistente, actualizarla SIEMPRE).
+- Diseños aprobados: `previews/` del repositorio DylanOS (la referencia del SDDM es
+  `previews/pantalla de bloqueo/sddm_preview.png`).
+- Licencias y procedencia de recursos: [Licencias de recursos](../licencias/assets.md).
+
+
+## DylanOS Browser: estado y decisión de ubicación
+
+`apps/dylanos-browser/` permanece vendorizado para conservar junto a DylanOS la
+procedencia del fork de Zen, sus parches y avisos MPL-2.0. El build de Gecko sigue
+siendo una fase explícita: `npm run build:linux -- candidate` crea
+`artifacts/phase-2/package` con un manifiesto determinista de identidad, commit y hashes.
+El build de la ISO no recompila Gecko dentro del chroot: exige ese candidato, verifica
+todos sus archivos, construye el paquete Debian con Debhelper y lo instala mediante APT.
+
+La selección inicial se expresa en dos niveles XDG: skel para cuentas nuevas y
+`/usr/share/applications/mimeapps.list` como default del sistema. Ambos asignan
+`text/html`, `x-scheme-handler/http` y `x-scheme-handler/https` a
+`org.dylanos.browser.desktop`. El staging no recorre hogares existentes ni ejecuta
+`xdg-settings`, por lo que una elección previa del usuario prevalece. Firefox ESR se
+elimina de la lista base y de chroots reanudados; continúa disponible para instalación
+voluntaria, pero no forma parte de la imagen.
+
+Para un checkout de trabajo ligero con Git partial clone, excluye ese árbol así:
+
+```sh
+git clone --filter=blob:none --sparse https://github.com/dylanneymarmontalvo2014-lgtm/DylanOS.git
+cd DylanOS
+git sparse-checkout set --no-cone '/*' '!/apps/dylanos-browser/**'
+```
+
+El resto queda disponible y Git trae blobs bajo demanda. Para trabajar en el Browser: `git sparse-checkout add apps/dylanos-browser`.

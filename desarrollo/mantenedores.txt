@@ -1,0 +1,506 @@
+MANTENEDORES DE DYLANOS
+======================
+
+PROYECTO
+--------
+Nombre: DylanOS Crimson
+Repositorio: dylanneymarmontalvo2014-lgtm/DylanOS
+Rama de trabajo activa para los cambios actuales: development
+
+MANTENEDOR
+----------
+Dylan
+Cuenta de GitHub: dylanneymarmontalvo2014-lgtm
+Perfil: https://github.com/dylanneymarmontalvo2014-lgtm
+
+MANTENEDOR
+----------
+Cristopher Borjas
+Cuenta de GitHub: CRISTOP-bot
+Perfil: https://github.com/CRISTOP-bot
+
+Cristopher Borjas es una persona y mantenedor humano de DylanOS. CRISTOP-bot
+es su cuenta personal de GitHub; no es un bot automatizado. El nombre de la
+cuenta no describe su naturaleza. Las contribuciones y decisiones hechas
+personalmente desde esa cuenta corresponden a Cristopher. Las acciones,
+workflows y otros procesos automatizados del repositorio son independientes
+de la cuenta.
+
+RESPONSABILIDADES DE MANTENIMIENTO
+----------------------------------
+El mantenimiento del proyecto incluye:
+- conservar la coherencia de arquitectura, branding y experiencia de DylanOS;
+- revisar cambios de código, configuración, documentación y automatizaciones;
+- verificar que las afirmaciones sobre funciones y compatibilidad coincidan
+  con lo que realmente se implementó y probó;
+- mantener instrucciones reproducibles para preparar, compilar y validar;
+- corregir regresiones y documentar limitaciones conocidas;
+- conservar las decisiones explícitas de alcance y no mezclar cambios ajenos;
+- revisar los resultados reales del CI antes de declarar una validación aprobada.
+
+FLUJO DE CAMBIOS
+---------------
+1. Confirmar el repositorio y la rama de destino antes de editar.
+2. Preferir cambios enfocados que respeten la arquitectura y los componentes
+   existentes; revisar el código actual para evitar duplicados.
+3. Mantener el fondo de pantalla y otros recursos de identidad intactos salvo
+   que el cambio solicitado los incluya expresamente.
+4. Añadir o actualizar documentación para cada comportamiento nuevo, cambio de
+   configuración, requisito, comando de uso o limitación relevante.
+5. Ejecutar las pruebas pertinentes al cambio y registrar sus resultados
+   exactos. No describir una prueba como ejecutada si no se ejecutó.
+6. Revisar el estado de CI asociado al SHA exacto que se modificó. Un workflow
+   en curso no es una aprobación.
+7. Comprobar los archivos y el contenido final de la rama después de publicar
+   cambios. No alterar main cuando la tarea indica development.
+
+CRITERIOS DE VERIFICACIÓN
+-------------------------
+- Distinguir claramente entre implementado, probado, experimental y pendiente.
+- Las pruebas estáticas, de staging o de CI no demuestran por sí solas que una
+  ISO arranque, que un instalador complete una instalación o que una función
+  trabaje en hardware real.
+- Informar por separado los resultados de compilación, creación de ISO,
+  pruebas automatizadas, arranque en máquina virtual y pruebas de hardware.
+- Si una prueba falla, conservar el error observado, corregir la causa cuando
+  corresponda y volver a ejecutar la validación afectada.
+- No declarar compatibilidad con un sistema anfitrión basándose únicamente en
+  que el código reconoce su nombre: comprobar sus dependencias y build real.
+- No añadir datos simulados como si fueran lecturas del sistema o resultados
+  reales.
+
+DOCUMENTACIÓN Y REPORTES
+------------------------
+Para cada conjunto de cambios, documentar:
+- archivos afectados y propósito de cada modificación;
+- comandos necesarios para usar o reproducir la función;
+- pruebas ejecutadas, sus resultados y el SHA evaluado;
+- limitaciones, dependencias y validaciones todavía pendientes.
+
+La documentación del estado vigente se mantiene junto al código y en las
+páginas enlazadas desde README.md. Los informes antiguos se consideran contexto
+histórico y no sustituyen las verificaciones actuales.
+
+SEGURIDAD Y CAMBIOS DEL SISTEMA
+-------------------------------
+- Explicar con claridad las operaciones privilegiadas, instalaciones de
+  paquetes, configuración de repositorios y servicios.
+- Pedir confirmación antes de aplicar cambios que modifiquen el sistema del
+  usuario o antes de acciones externas que lo representen.
+- No incluir tokens, contraseñas, claves privadas ni otros secretos en el
+  repositorio, logs o documentación.
+- No eliminar fuentes, proyectos o datos del usuario al limpiar artefactos.
+
+DOCUMENTOS RELACIONADOS
+-----------------------
+README.md                 Resumen del proyecto y comandos iniciales
+CONTRIBUTING.md           Flujo para contribuciones
+docs/architecture.md     Arquitectura del sistema
+docs/install.md          Construcción, instalación y QA
+docs/build-hosts.md      Sistemas anfitriones para compilar
+
+Este archivo describe las responsabilidades y prácticas de mantenimiento;
+no afirma que una prueba o una función esté validada si no existe evidencia.
+
+
+ACTUALIZACIÓN DE MANTENIMIENTO — 2026-10-24
+------------------------------------------
+Rama: development
+Último cambio confirmado: 3a350001f926431ac56243106308780d2155c3d0
+Cambio: reducir actividad y memoria auxiliar del Centro de Control cuando el
+panel está cerrado; reutilizar un solo modelo de notificaciones y pausar sus
+sondeos de estado hasta abrir el panel.
+
+Verificación local registrada para el cambio:
+- test_shell_contract, test_staging, test_documentation y test_theme: 24
+  pruebas pasaron.
+- suite combinada con test_pomodoro: 24 pasaron; 1 omitida porque Node.js no
+  estaba disponible.
+- test_packages.sh: 56 pasaron, 0 fallaron.
+- staging de los tres archivos QML del Centro de Control verificado.
+- Sintaxis JSON y shell comprobada.
+
+CI del SHA 3a350001f926431ac56243106308780d2155c3d0: workflow 40138697148,
+conclusión success. No se midió el consumo en MiB en una ISO/VM comparable y
+no se realizó QA gráfico de Plasma; por ello no se declara una cifra de ahorro
+ni validación visual en runtime.
+
+
+ACTUALIZACIÓN DE MANTENIMIENTO — 2026-10-24
+------------------------------------------
+Rama: development
+Cambio: integrar `com.dylanos.dock` al panel inferior de perfiles nuevos e
+implementar ampliación graduada de iconos cercanos al cursor. Conserva los
+siete lanzadores previos, la papelera, `TaskManager.TasksModel` y compatibilidad
+con perfiles existentes sin reemplazar sus paneles.
+
+Verificación local: 27 pruebas enfocadas de contratos, staging, documentación,
+tema y cableado de Explorer/Store pasaron; `test_packages.sh`: 56 pasaron, 0
+fallaron; staging verificó plasmoid, configuración y layout. La prueba de
+layout con Node se omitió por no estar Node.js instalado. No se ejecutó Plasma
+gráfico: el render y el efecto de hover quedan pendientes de QA visual. No se
+ha construido una nueva ISO.
+
+
+ACTUALIZACIÓN DE MANTENIMIENTO — 2026-10-24
+------------------------------------------
+Rama: development
+Cambio: hacer que la tarjeta de acceso SDDM derive el ancho del formulario
+escalado, conservando el margen y limitándose al ancho disponible. No cambia
+la autenticación, sesión, cuenta, wallpaper ni las acciones de energía.
+Validación local: `scripts.tests.test_sddm_theme` ejecutó 2 pruebas y omitió
+1 por falta de `sddm-greeter`; `test_staging` y `test_documentation` pasaron
+(9 pruebas). No se afirma una validación visual en greeter ni VM; el greeter
+no está instalado en el entorno de edición.
+
+
+CORRECCIÓN URGENTE — 2026-10-24
+-------------------------------
+La captura del usuario reveló que el Centro de Control no cargaba:
+`ControlCenterPanel.qml` asignaba `Accessible.value` en dos sliders, propiedad
+no válida para el control en Qt Quick. Se eliminaron ambas asignaciones;
+`Accessible.name` se conserva y `Slider` anuncia su valor mediante su API
+nativa. Pruebas específicas y estado de CI de la corrección se registran al
+confirmarse. No se modificó SDDM en esta corrección.
+
+
+CORRECCIÓN DEL DOCK VACÍO — 2026-10-24
+--------------------------------------
+La captura mostraba la papelera pero no los iconos del dock. El ancho del
+applet se calculaba leyendo `dockRow.implicitWidth`, aunque `dockRow` está
+dentro del Component `dockContent` y no está en alcance del objeto exterior.
+El applet ahora calcula el ancho mínimo con el número de elementos de
+`TaskManager.TasksModel`, anchura del delegado, separación y padding. Se añadió
+una aserción al contrato del dock. Validación de esta actualización: prueba
+estática local y resultado CI en curso al publicar. QA visual en una sesión
+Plasma sigue pendiente; no se afirma todavía que el render se haya comprobado.
+
+
+AUDITORÍA Y CORRECCIÓN SPOTLIGHT — 2026-10-24
+--------------------------------------------
+Hallazgo confirmado: `backend.py` llamaba a `urllib.parse.quote` sin importar
+`urllib`, lo que lanzaba `NameError` al actualizar la búsqueda y añadir el
+resultado web. Se importa `quote` explícitamente y se añade un contrato de
+regresión. Se actualiza la guía, que advertía del fallo anterior. La búsqueda
+de archivos y el modo calculadora siguen incompletos y se documentan como
+limitaciones, no se han presentado como funciones reparadas en esta tarea.
+
+Auditoría local del árbol integrado: `unittest discover` ejecutó 130 pruebas;
+1 falló porque el ZIP descargado no conserva el bit ejecutable de
+`scripts/build.sh`, 2 dieron error porque esta sesión no tiene
+`/usr/bin/python3` para ejecutar el parser GTK; 12 se omitieron por
+dependencias opcionales ausentes. El CI del dock para el SHA auditado ya
+finalizó correctamente.
+
+
+AUDITORÍA DE SPOTLIGHT — 2026-10-24 (hallazgos adicionales)
+-----------------------------------------------------------
+Se corrigió el alcance de filtros: Web muestra solo su acción; Calcular solo
+expone expresiones aritméticas; en Todo, la acción web permanece dentro del
+límite de resultados. Se quitó el recuento ficticio de archivos del pie.
+Archivos continúa sin motor de búsqueda y está documentado como pendiente.
+Pruebas de contrato de Spotlight y test de shell ejecutados localmente; no se
+ha ejecutado runtime Qt porque PySide6 no está instalado en este entorno.
+
+
+AUDITORÍA DEL INSTALADOR — 2026-10-25
+------------------------------------
+Hallazgo confirmado en `installer/dylanos-installer/backend/server.py`: el
+modo manual reutilizaba una partición ext4 sin limpiar sus archivos previos.
+`unsquashfs -f` sobrescribe rutas presentes en la imagen, pero no retira otros
+archivos existentes; una reinstalación podía dejar datos y configuración
+antiguos mezclados con el sistema nuevo. Ahora la raíz montada se limpia antes
+de montar la ESP y extraer la imagen; se eliminan enlaces sin seguirlos.
+Regresión cubierta por dos pruebas unitarias: limpieza de archivos/directorios
+y enlaces, y rechazo de una ruta no montada. Verificado localmente con
+`python3 -m unittest scripts.tests.test_installer_backend.InstallRootCleanupTest -v`
+y la suite del instalador. No se ejecutó una instalación real ni una prueba
+visual/VM/ISO en esta auditoría.
+
+
+AUDITORÍA Y CORRECCIÓN MIME — 2026-10-25
+-----------------------------------------
+Hallazgo confirmado en `scripts/stage.py`: el staging escribía las asociaciones MIME globales como `mimeapps.info`, nombre que XDG no reconoce (`mimeapps.list` es el nombre requerido), y además omitía el terminador `;` de los IDs de escritorio. El archivo por usuario ya configuraba Explorer; esta corrección repara las asociaciones de nivel sistema.
+
+Regresión añadida en `scripts/tests/test_staging.py`: verifica el archivo global `mimeapps.list`, el valor terminado en punto y coma y la ausencia del nombre inválido. La ejecución local de la suite no fue válida en la copia de trabajo disponible: ésta difiere de la rama confirmada (incluye una variante antigua de staging que exige `configs/kitty/kitty.conf`, archivo ausente del HEAD actual). El resultado del CI del SHA publicado debe consultarse antes de declarar la corrección validada. No se realizaron pruebas visuales, de VM ni de ISO.
+
+AUDITORÍA SPOTLIGHT — 2026-10-25
+--------------------------------
+Hallazgo confirmado en `apps/dylanos-spotlight/backend.py`: las aplicaciones
+obtenidas del campo `Exec` de archivos `.desktop` se ejecutaban con
+`subprocess.Popen(..., shell=True)`. El campo `Exec` es un vector de argumentos,
+no un programa de shell; una entrada con metacaracteres podía ejecutar órdenes
+adicionales al activar un resultado. Ahora se analiza con `shlex` y se lanza
+sin shell, conservando argumentos entrecomillados y suprimiendo códigos de
+campo sin selección. Se rechaza una cadena con comillas inválidas.
+
+Archivos afectados: `backend.py`, nuevo `exec_utils.py`,
+`apps/dylanos-spotlight/README.md`, `scripts/tests/test_spotlight_exec.py`,
+y `CHANGELOG.md`. Prueba local ejecutada:
+`python3 -m unittest scripts.tests.test_spotlight_exec -v` (3 pruebas aprobadas).
+No se ejecutó el runtime Qt, la ISO, la instalación ni una prueba visual; este
+entorno no tiene PySide6. La prueba de CI de HEAD anterior estaba en curso al
+inicio de esta auditoría; revisar el run asociado al nuevo SHA antes de
+considerar CI aprobado.
+
+
+AUDITORÍA DE ENERGÍA — 2026-10-25
+---------------------------------
+Rama: development. Hallazgo confirmado en HEAD 707694bc356d2ae447a1985e02104f771a997795: DylanOS Configuration consultaba y cambiaba perfiles mediante `powerprofilesctl`, pero `packages/default/packages.list` no incluía `power-profiles-daemon`; la imagen base no garantizaba la herramienta/servicio y la página caía al estado «Sin gestión de energía». Se añadió el paquete al perfil base y una aserción a `test_packages.sh`.
+Verificación local tras el cambio: `bash scripts/tests/test_packages.sh` — 57 aprobadas, 0 fallidas; `python3 -m unittest scripts.tests.test_configuration scripts.tests.test_documentation -v` — 8 aprobadas. Estas pruebas son de contrato/staging/documentación; no se construyó imagen y no se comprobó el servicio en runtime, hardware o VM. Queda pendiente validar instalación y funcionamiento en build/runtime.
+
+
+AUDITORÍA DE AUDIO — 2026-10-25
+-------------------------------
+`SoundPage.qml` rellenaba los selectores con nombres amigables pero les pasaba
+como selección el nombre interno `defaultSink/defaultSource`; el componente
+`DSelect` compara el valor con la lista visible, por lo que mostraba el
+identificador crudo y no marcaba el elemento actual. Añadidos helpers que
+resuelven nombre interno → descripción, con fallback al nombre si no hay
+descripción o el dispositivo ya no está listado. Al elegir se conserva el
+nombre interno exigido por `setDefaultSink/Source`. Prueba de contrato
+añadida; validación de runtime de audio/Qt no se afirma sin servidor real.
+
+
+ACTUALIZACIÓN DE MANTENIMIENTO — 2026-10-25
+------------------------------------------
+Rama: development. Hallazgo confirmado por inspección del flujo de navegación
+integrado: `Configuration.qml` guardaba únicamente `route` en el historial aun
+cuando `go()` admite pestañas (por ejemplo, «Aplicaciones → Predeterminadas»).
+Al regresar desde otra sección, `AppsPage.qml` recibía `tab` vacío y mostraba
+«Instaladas»; se guardan y restauran ahora ruta y pestaña juntas.
+
+Archivos: `apps/dylanos-configuration/qml/Main.qml` registra las dos partes
+del estado de navegación; `scripts/tests/test_configuration.py` añade una
+regresión de contrato sobre el almacenamiento/restauración y el uso real de
+la pestaña por AppsPage; `CHANGELOG.md` registra el cambio.
+Prueba dirigida: `python3 -m unittest scripts.tests.test_configuration -v`.
+Es prueba de contrato estática; no hay runtime Qt/QML en este entorno, así que
+no se afirma validación interactiva ni visual.
+
+
+AUDITORÍA DE PUBLICACIÓN DE VERSIONES — 2026-10-25
+---------------------------------------------------
+Hallazgo confirmado: `.github/workflows/release.yml` solo ejecutaba check.sh
+con `contents: read`; las etiquetas v* no construían ni publicaban artefactos.
+Además, iso.sh, stage.py, test.sh y el smoke-test fijaban el identificador
+1.0-beta, lo que habría etiquetado incorrectamente una ISO de producción.
+
+Cambio: el workflow de tag valida y deriva la versión, ejecuta check/build,
+construye la ISO versionada, valida checksum/estructura, corre el smoke test
+QEMU y solo entonces crea la GitHub Release adjuntando ISO amd64 y SHA-256.
+La versión llega a os-release, el nombre de ISO, `.disk/info` y GRUB. Se
+añadieron contratos de workflow y pruebas de metadatos/versiones inseguras.
+
+La suite local y el CI del commit nuevo deben ejecutarse y registrarse antes
+de considerar validado el cambio. Aunque CI apruebe, no significa que se haya
+hecho una instalación real en disco ni QA visual del escritorio.
+
+
+SEGURIDAD DE CUENTA LIVE — 2026-10-25
+-------------------------------------
+Hallazgo confirmado en el payload instalado: `stage.py` prepara autologin SDDM
+y `sudoers.d/dylan` sin contraseña para el usuario efímero del live. En una
+instalación con nombre distinto, `userdel -r dylan` borraba la cuenta pero no
+esos archivos; si `dylan` se recreaba, heredaba sudo root sin contraseña.
+Además, el nombre predeterminado `dylan` no pasa por ese userdel.
+
+Corrección: antes de configurar la cuenta, el instalador elimina el sudoers
+live y remueve la sección `[Autologin]` del archivo SDDM instalado para todos
+los nombres, preservando la sección Theme y otras opciones. Añadidas pruebas
+unitarias para limpieza/retención del tema y para el caso de conservar `dylan`.
+Esto es una corrección de código con prueba local; no se afirma instalación
+real ni arranque de sistema instalado en VM.
+
+
+SEGURIDAD DE API LOCAL DEL INSTALADOR — 2026-10-25
+--------------------------------------------------
+La API del instalador escucha en loopback, pero respondía con
+`Access-Control-Allow-Origin: *`; una web externa podía leer respuestas con
+datos de hardware/discos. Sus endpoints POST de reinicio y cierre tampoco
+verificaban origen, por lo que una página podía intentar disparar acciones
+mediante formularios simples sin preflight.
+
+Corrección: validar Host loopback, Origin permitido y Sec-Fetch-Site en GET y
+POST; eliminar el encabezado CORS comodín. Añadidas pruebas de misma origen,
+origen ajeno, cross-site y DNS rebinding. Validación local no equivale a una
+prueba de seguridad en navegador o imagen instalada.
+
+
+AUDITORÍA APP CENTER — 2026-10-25
+--------------------------------
+Hallazgo: App Center calcula pageSize desde el ancho y alto de la ventana,
+pero solo actualizaba totalPages/pageItems al buscar o al resetear el modelo.
+Un cambio de resolución o tamaño dejaba paginación y contenido obsoletos.
+
+Corrección: programar reload al cambiar ancho y alto; se usa Qt.callLater para
+recalcular después de actualizar las propiedades geométricas. Se añadió una
+prueba contractual para ambos cambios y para comprobar que reload refresca
+los datos de paginación. No se hizo prueba visual/interactiva de Qt.
+
+
+AUDITORÍA DE SPOTLIGHT — 2026-10-25 (evaluador aritmético)
+-----------------------------------------------------------
+Hallazgo reproducido: la calculadora aceptaba `9**99999999` y `eval` iniciaba
+un cálculo que superaba 1 s de prueba; sin límites puede bloquear Spotlight y
+agotar memoria.
+
+Corrección: sustituir eval por un parser AST con operadores numéricos
+permitidos, máximo de longitud/nodos, exponente absoluto <= 100 y magnitud
+finita <= 1e100. Añadidas pruebas unitarias para aritmética normal, exponentes
+extremos, rango, Python no aritmético, entradas largas y división por cero.
+
+
+AUDITORÍA DEL INSTALADOR — 2026-10-25 (confirmación de instalación)
+---------------------------------------------------------------------
+Hallazgo: si POST /api/install fallaba o no respondía, InstallationScreen
+arrancaba startSimulatedInstallation y podía avanzar a Finish como si el
+sistema estuviera instalado. Esto ocultaba fallos del backend y podía inducir
+a reiniciar un equipo sin instalación real.
+
+Corrección: retirar la ruta de éxito simulada. Tras POST fallido, consultar
+/api/install/status para reanudar el polling si el backend ya había aceptado
+la operación; solo marcar completado tras estado/progreso real, y mostrar error
+si el backend no confirma la instalación. Añadido test contractual del flujo.
+- Instalador: la pantalla de particionado comienza sin destino y habilita continuar únicamente con un dispositivo `/dev/...` detectado. El backend vuelve a comprobar root, inventario de `lsblk`, tipo block device y exclusión del medio live antes de cualquier escritura; la API de producción no simula instalaciones exitosas. Pruebas unitarias locales: `python3 scripts/tests/test_installer_backend.py` (50 OK) y `python3 scripts/tests/test_installer_frontend.py` (2 OK), incluyendo rechazos sin comandos de disco. La ejecución local no valida hardware real ni una instalación completa.
+
+
+AUDITORÍA DE CONFIGURACIÓN — 2026-10-25 (selectores de audio)
+-------------------------------------------------------------
+Hallazgo: pactlDevices usaba `pactl list short` y mostraba la última columna
+(estado RUNNING/SUSPENDED) como descripción, por lo que los selectores de
+entrada/salida podían mostrar el estado en vez del nombre legible del dispositivo.
+
+Corrección: leer los registros detallados de pactl, extraer Name y Description
+explícitamente y usar Name como fallback si no hay Description. Añadida prueba
+contractual para impedir volver a tomar el campo final de la salida short.
+
+
+CORRECCIÓN DE WIDGETS Y DOCK — 2026-10-25
+-----------------------------------------
+Rama: development.
+Hallazgo: las opciones independientes iconSize (24–96) y hoverSize (24–140)
+permitían iconSize > hoverSize. El dock reservaba la anchura/altura usando solo
+hoverSize; el icono base podía sobresalir de su delegado, invadir al vecino o
+recortarse por el ancho calculado del panel.
+
+Corrección: usar max(iconSize, hoverSize) como extensión efectiva en el ancho
+del dock, la altura del applet y la caja de cada delegado; tratar un hoverSize
+menor que el icono base como sin reducción. Se añadió contrato de regresión
+y se documentó el límite.
+
+Pruebas locales tras el cambio: se ejecutarán `test_shell_contract`,
+`test_desktop` y `test_staging`; la inspección es estática/contractual. No se
+realizó sesión Plasma visual ni arranque de ISO en esta modificación.
+
+
+REVISIÓN DE WIDGETS — 2026-10-25 (acceso a energía)
+---------------------------------------------------
+Hallazgo confirmado: el acceso «Ahorro de energía» del Centro de Control
+llamaba `kcmshell6 powerdevilprofilesconfig`, pero el KCM disponible y usado
+por DylanOS Configuration es `kcm_powerdevilprofilesconfig`. El botón invocaba
+un identificador incorrecto y no abría el módulo.
+
+Corrección: actualizar el comando y añadir una aserción para mantenerlo
+alineado con PowerPage.qml. Prueba de contrato; no sustituye ejecutar el KCM
+en Plasma real.
+
+
+CORRECCIÓN DE PERMISOS DE SCRIPTS DE BUILD — 2026-10-25
+-------------------------------------------------------
+Hallazgo confirmado en el árbol Git de development: `init.sh`,
+`scripts/check.sh` y `scripts/test-build-host.sh` contienen shebang y son
+puntos de entrada, pero estaban registrados como 100644. Ejecutarlos como
+`./init.sh`, `./scripts/check.sh` o `./scripts/test-build-host.sh` devolvía
+«permiso denegado». `scripts/build.sh`, `scripts/iso.sh` y otros entrypoints
+principales ya estaban en 100755.
+
+Corrección: guardar los tres puntos de entrada como 100755, añadir una prueba
+que protege los modos de los entrypoints, y actualizar las instrucciones de
+uso. `scripts/build-host.sh` sigue como biblioteca sourced, no como ejecutable.
+
+
+CORRECCIÓN DEL LOCK DE BUILD — 2026-10-26
+-----------------------------------------
+La captura muestra `scripts/build.sh` fallando en la apertura de
+`work/build.lock`. La fase elevada dejaba ese archivo propiedad de root y el
+usuario no podía abrirlo con redirección en la siguiente ejecución.
+
+Cambio: build e ISO comparten un lock en `${TMPDIR:-/tmp}`, fuera del checkout;
+se crea con permisos legibles, se verifica que no sea enlace simbólico y se
+abre en modo lectura antes de `flock`. Así la fase root puede reutilizar el lock
+sin volver a crear un archivo dentro de `work/`. Antes de elevarse, `build.sh`
+crea `work/` y si no pertenece al usuario o no es escribible corrige solo el
+propietario del directorio, no el chroot ni sus contenidos. Se añadió prueba
+con dos procesos concurrentes y contrato sobre la recuperación del directorio.
+Las pruebas no ejecutan un build completo ni ISO.
+
+
+STORE VACÍA Y EXPLORER SIN VENTANA — 2026-10-27
+------------------------------------------------
+Hallazgos confirmados en el build declarado: al final de la creación del chroot
+se eliminaban `/var/lib/apt/lists/*` sin materializar antes el índice AppStream,
+pero libdiscover/PackageKit usa ese índice para poblar sus recursos; el catálogo
+SQLite solo organiza y presenta recursos que ya resolvió AppStream. Además, la
+QML del Explorer importa `QtQuick.Shapes` y el paquete de ese módulo no estaba
+en el perfil base, así que el binario no puede completar la carga QML en el ISO.
+
+Correcciones: cachear AppStream con `appstreamcli refresh-cache --force` antes
+de retirar las listas APT y declarar `qml6-module-qtquick-shapes` en paquetes
+base. Añadidas pruebas de orden de cacheo/limpieza y dependencia runtime. Esto
+no sustituye una ejecución visual de ambas apps en un sistema instalado.
+
+
+CI DE CONTRATO DE SHELL — 2026-10-27
+------------------------------------
+El workflow 40603688383 falló en `scripts/tests/test_shell_contract.py`: la
+prueba exigía `background_opacity 0.40` y `window_padding_width 16 18`, mientras
+que `configs/kitty/kitty.conf` vigente declara 0.50 y 20 24. No era un fallo
+del script ni de Kitty; el contrato de prueba quedó desactualizado tras un
+cambio anterior de configuración. Se actualizaron únicamente las expectativas
+de la prueba y la nota del changelog, sin editar Kitty ni el wallpaper.
+Pruebas locales: suite de contrato (9/9) y `scripts/tests/test_packages.sh`
+(59/59). CI del nuevo SHA queda pendiente.
+
+
+COMPATIBILIDAD COMPOSE EN BUILDER — 2026-10-27
+------------------------------------------------
+El inicializador exigía exclusivamente `docker compose`, lo que excluía hosts
+con Compose v2 instalado como ejecutable standalone `docker-compose`, aunque
+ese modo es habitual en instalaciones por paquetes o manuales. Se añadió
+`/scripts/docker-compose.sh`: detecta plugin o standalone v2, rechaza v1 y usa
+el modo detectado tanto para construir como para ejecutar QA, incluso bajo sudo
+cuando el daemon solo sea accesible con sudo. Dockerfile incluye el helper que
+`init.sh` carga. La tabla de hosts y guías documentan los requisitos sin
+afirmar compatibilidad validada en cada distribución.
+
+Pruebas locales de detección cubren plugin, standalone v2 (dos formatos) y
+rechazo de v1 usando ejecutables fake; se integran en `scripts/check.sh`. El CI
+40604483812 fallaba además por un contrato obsoleto en `test_staging.py` que
+esperaba opacidad 0.40 aunque Kitty configura 0.50; se actualizó esa expectativa
+sin tocar la configuración. El build real del contenedor y QA siguen sujetos
+al CI del nuevo SHA.
+
+
+CORRECCIÓN CI SHELLCHECK — 2026-10-27
+--------------------------------------
+El workflow 40605773351 falló en `scripts/check.sh` por SC2016 en `init.sh`:
+el mensaje de error incluía nombres de comandos entre comillas invertidas dentro
+de una cadena simple, que ShellCheck marca como posible expresión sin expansión.
+Se reemplazaron esas marcas por texto plano; solo cambia el texto del error.
+Validación local: `bash -n` pasó; tests de detección Compose y distro pasaron;
+26 tests de contrato/build/staging pasaron (1 omitido por dependencia opcional);
+59 comprobaciones de paquetes pasaron. ShellCheck no está instalado en este
+entorno, por lo que la ejecución de ese analizador y el CI del nuevo SHA quedan
+pendientes.
+
+
+PERFIL IOT — 2026-11-07
+-----------------------
+Perfil separado `--iot` basado en default+build, con Arduino IDE y herramientas
+Debian para AVR, JTAG/SWD, ESP/STM32, MQTT, CAN, serial, I2C/GPIO y análisis
+lógico. Mosquitto no se inicia automáticamente. Registrar el perfil en `/etc/dylanos-profile`; en instalación, agregar los
+grupos dialout/i2c/gpio solo para IoT y solo si existen. Pruebas: test_packages.sh,
+test_build_entrypoint.py, test_installer_backend.py y shellcheck/build CI.
+La disponibilidad de paquetes se cotejó con Debian trixie; no se ejecutó build
+de ISO ni se probó hardware físico en esta revisión.

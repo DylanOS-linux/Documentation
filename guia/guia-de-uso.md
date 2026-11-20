@@ -1,0 +1,86 @@
+# Guía de uso y estado de las funciones de DylanOS
+
+Esta guía es el mapa práctico de la rama `development`. Describe lo que el código actual expone, cómo abrirlo y las limitaciones visibles que conviene conocer. Las capturas de `previews/` son referencias visuales, no pruebas de que cada detalle esté implementado. Para compilación, instalación de la ISO y pruebas, sigue [Instalación y QA](instalacion.md); para diseño interno, [Arquitectura](../arquitectura/vision-general.md).
+
+## Escritorio y paneles
+
+El perfil de Plasma se aplica a perfiles nuevos mediante el layout de `themes/lookandfeel/org.dylanos.crimson/contents/layouts/`. No reemplaza paneles de un perfil de usuario que ya existe. La configuración se genera por look-and-feel al crear el perfil y deja el escritorio sin widgets preinstalados.
+
+- **Escritorio limpio**: DylanOS no añade el antiguo muro `com.dylanos.dashboard` a perfiles nuevos y staging lo borra de chroots reutilizados. Permanecen únicamente los paneles funcionales del shell y los accesos del escritorio live.
+- **Centro de Control DylanOS** (`com.dylanos.controlcenter`, versión 0.4.0): notificaciones reales de Plasma, Wi-Fi y Bluetooth cuando sus servicios están disponibles, No molestar mediante NotificationManager, controles de brillo, volumen de salida y volumen/silencio del micrófono predeterminado, además de reproducción MPRIS si hay un reproductor compatible. Los controles de audio usan `pactl`; micrófono y salida requieren fuentes presentes mediante PulseAudio o PipeWire Pulse. El selector oscuro/claro aplica los esquemas `DylanOSDark` y `DylanOSLight`. Los sondeos (audio/brillo cada 5 s; Wi-Fi, tema y reproducción cada 15 s) se pausan mientras el popover está cerrado y se reanudan con una lectura inmediata al abrirlo; indicador y panel comparten una sola instancia del modelo de notificaciones. No todos los equipos ofrecen brillo, audio, Bluetooth o reproductor. El panel exterior usa translucidez moderada; el blur real depende de KWin y del compositor.
+- **Barra superior**: lanzador, nombre real de la aplicación activa, acciones universales de ventana, menú global cuando la aplicación lo exporta, bandeja, búsqueda, Centro de Control y reloj.
+- **Dock inferior**: dock propio `com.dylanos.dock` con superficie Crimson Glass —cristal oscuro, reflejo fino, borde perlado y acento carmesí—, iconos sobre placas translúcidas al acercar el cursor, ampliación suave estilo macOS e indicadores reales de aplicaciones abiertas; conserva la papelera al final. El tamaño de celda siempre reserva el mayor entre tamaño base y tamaño de hover, por lo que no se recortan ni solapan iconos si el tamaño base es mayor. Se aplica a perfiles nuevos y no reemplaza el panel de perfiles existentes. La translucidez depende del compositor de KWin.
+- **Búsqueda**: abre Spotlight con `Ctrl+Espacio` o con el icono de lupa. Escape la cierra.
+
+El orden exacto y los tipos de panel se definen en el [layout del escritorio](https://github.com/dylanneymarmontalvo2014-lgtm/DylanOS/blob/development/themes/lookandfeel/org.dylanos.crimson/contents/layouts/org.kde.plasma.desktop-layout.js). La carga de los plasmoides se valida con Plasma real dentro del chroot; la captura visual final requiere una sesión gráfica o VM.
+
+## Aplicaciones y comandos
+
+| Aplicación o comando | Uso | Cómo abrir |
+|---|---|---|
+| DylanOS Workspace (`dylanos`) | Bienvenida, archivos básicos, notas locales, desarrollo, monitor y ajustes | Menú o `dylanos --page welcome`; páginas: `welcome`, `files`, `notes`, `dev`, `monitor`, `settings` |
+| DylanOS Explorer (`dylanos-explorer`) | Gestor de archivos del sistema basado en KIO | Menú «Archivos» o `dylanos-explorer [ruta]`; ver su [guía](../aplicaciones/explorer.md) |
+| DylanOS Store (`dylanos-store`) | Catálogo/gestión de software mediante libdiscover y los backends configurados | Menú o `dylanos-store`; Workspace abre actualizaciones con `dylanos-store --mode Update` |
+| DylanOS App Center (`dylanos-app-center`) | Explorar y lanzar aplicaciones XDG instaladas | Menú; ver `apps/dylanos-app-center/` |
+| DylanOS Calculator (`dylanos-calculator`) | Calculadora de escritorio | Menú o comando `dylanos-calculator` |
+| DylanOS Configuration (`dylanos-configuration`) | Preferencias DylanOS y módulos nativos de KDE | Menú o `dylanos-configuration`; secciones mediante `--page` |
+| DylanOS Spotlight (`dylanos-spotlight`) | Lanzador/búsqueda rápida | `Ctrl+Espacio`, lupa o `dylanos-spotlight` |
+| DylanOS Console (`dylanos-console`) | Terminal Kitty con configuración Crimson | Menú o `dylanos-console [--directory ruta]` |
+| DylanOS Browser (`dylanos-browser`) | Navegador web propio basado en Gecko | `dylanos-browser [URL]`; integración de paquete en fase de preparación |
+| DylanOS Process (`dylanos-process`) | Monitor real de procesos y recursos del sistema | Menú o `dylanos-process` |
+| `about` | Agradece a las personas listadas como mantenedoras | Terminal: `about` |
+| `neofetch` / `sistema` | Resumen del equipo con logo gráfico; `sistema` es alias Bash | Terminal interactiva |
+| `dylanos-installer` | Asistente para instalar DylanOS | Acceso «Instalar DylanOS» en la sesión live o menú |
+
+`dylanos` acepta `--page` con las seis claves indicadas arriba. También ofrece opciones de QA `--smoke`, `--screenshot archivo` y `--appearance dark|light`; estas opciones no son necesarias para el uso cotidiano. `dylanos-configuration --page <sección>` abre una sección del panel (por ejemplo, `network`, `sound`, `display`, `power`, `accounts` o `personalization`).
+
+El comando `about` lee `/usr/share/dylanos/MAINTAINERS.txt` y usa los bloques `MANTENEDOR`; no mantiene una lista duplicada dentro del script. Si el archivo no está disponible o no contiene nombres válidos, muestra un error en lugar de inventar créditos.
+
+Los lanzadores de DylanOS Browser y DylanOS Process usan iconos propios (`dylanos-browser` y
+`dylanos-process`) instalados en el tema Hicolor. Browser conserva Firefox ESR como navegador
+estable mientras termina su integración de paquete; Process usa datos reales de KSysGuard y
+`ksystemstats` y conserva la confirmación antes de enviar señales a un proceso.
+
+### Workspace
+
+- **Bienvenida**: accesos a tareas, ajustes y actualización.
+- **Archivos**: navegación local, filtro por nombre en la carpeta actual, favoritos XDG, archivos ocultos, apertura con la app predeterminada, crear carpetas, copiar/pegar, renombrar sin reemplazar y papelera. La aplicación dedicada para gestión completa es DylanOS Explorer.
+- **Notas**: notas de texto persistidas localmente en SQLite bajo los datos del usuario; no se sincronizan con la nube.
+- **Desarrollo**: detecta un conjunto acotado de herramientas instaladas y crea plantillas locales Python, Web o C++. Al crear, no descarga dependencias. Permite abrir el proyecto en VS Code, Console o Explorer.
+- **Monitor**: CPU, memoria, disco, uptime y procesos; actualiza aproximadamente cada 2,5 segundos y se puede pausar. El monitor avanzado abre Plasma System Monitor.
+- **Ajustes**: cambia tema del usuario y abre Configuration/KCM para ajustes de red, Bluetooth, sonido, pantallas, energía, teclado, cuentas y escritorio.
+
+### Spotlight: alcance actual
+
+La ventana busca aplicaciones leyendo entradas `.desktop` y proyectos en `~/Proyectos`, `~/Projects`, `~/DylanOS` y `~/workspace`. La consulta ofrece abrir una búsqueda web en DuckDuckGo; el texto de consulta se codifica para URL antes de abrir el navegador. La activación de aplicaciones usa su línea `Exec` de escritorio; las carpetas se abren con DylanOS Explorer cuando está instalado.
+
+**Filtros que todavía no están completos:** «Archivos» no indexa ni busca archivos. «Calcular» solo devuelve expresiones aritméticas sencillas; no es un motor general. El filtro «Web» muestra únicamente la acción de búsqueda, y en «Todo» esta acción queda disponible aunque haya muchos resultados. El pie de ventana cuenta aplicaciones y proyectos indexados; no inventa una cantidad de archivos.
+
+## Instalador: precauciones y alcance
+
+La aplicación nativa Qt WebEngine inicia un backend REST local en `127.0.0.1:8088`. Cuando se ejecuta con root y detecta un disco objetivo, el endpoint de instalación puede particionar, formatear, extraer el sistema, crear el usuario y configurar GRUB. **La instalación automática sobre un disco real es destructiva:** revisa el dispositivo y las opciones antes de continuar; para QA usa una VM y un disco virtual desechable.
+
+Sin privilegios root o sin un dispositivo de destino presente, el backend trabaja en modo de vista previa y no escribe el disco. La interfaz puede usar catálogos de respaldo si el backend no responde; por eso los datos de respaldo no prueban detección real de hardware.
+
+**Particionado manual:** el instalador incluye un editor de particiones real. Los botones «Nueva partición», «Editar», «Eliminar», «Revertir» y «Plan sugerido» operan sobre un plan que no toca el disco hasta que se inicia la instalación; al continuar, el plan se valida en el servidor y después se aplica con `parted` y `mkfs`. El servidor exige una única raíz de al menos 12 GB, una ESP de 300 MiB o más en FAT32, y que la suma no exceda el disco real. Es **destructivo**: se descarta la tabla de particiones anterior del disco elegido. El camino automático crea GPT, una ESP, una partición BIOS boot y una raíz ext4; confirma que el disco elegido sea el de la VM o equipo destinado a DylanOS.
+
+El frontend aún contiene simulación/valores de respaldo históricos. La instalación real requiere backend conectado, privilegios y disco válido; si el backend no responde, el frontend puede iniciar una barra simulada de progreso que **no instala el sistema**. No declares una instalación completada basándote en esa animación. La [guía del instalador](../instalador/README.md) describe API y ejecución; la validación real requiere probar la ruta del backend en VM.
+
+## Perfiles de paquetes
+
+- `packages/default/packages.list`: base de escritorio y aplicaciones habituales; incluye `playerctl` para controles MPRIS.
+- `packages/development/packages.list`: perfil por defecto del build; herramientas generales, incluido Visual Studio Code desde el repositorio de Microsoft, Git, toolchain, Node.js, Python y utilidades.
+- `packages/iot/packages.list`: perfil especializado que se elige con `bash scripts/build.sh --iot`; incluye Arduino IDE, compilación AVR, OpenOCD, esptool, utilidades STM32, MQTT, CAN, serial, I2C/GPIO y PulseView/sigrok.
+- `packages/build/packages.list`: dependencias temporales de construcción; el build puede purgar las que no necesita la ISO final.
+
+El perfil IoT instala `mosquitto` pero deja su servicio deshabilitado para evitar exponer un broker en la red sin decisión del usuario. La imagen registra el perfil seleccionado en `/etc/dylanos-profile`; solo para el perfil IoT el instalador agrega la cuenta a `dialout` y a `i2c`/`gpio` cuando esos grupos existen. Vuelve a iniciar sesión para aplicar los grupos. Revisa reglas udev y permisos del dispositivo antes de conectar hardware.
+
+El perfil de paquetes determina qué comandos habrá en la imagen; la presencia de un botón o acceso no instala por sí sola dependencias opcionales. Consulta [Optimización](optimizacion.md) y los archivos de lista para el detalle vigente.
+
+## Enlaces relacionados
+
+- [Instalación, build y QA](instalacion.md)
+- [Arquitectura](../arquitectura/vision-general.md)
+- [DylanOS Shell, widgets y consola](../arquitectura/dylanos-shell.md)
+- [Mantenedores](../desarrollo/mantenedores.txt)
+- [Código del instalador](../instalador/README.md)

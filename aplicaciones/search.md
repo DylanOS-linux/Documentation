@@ -1,0 +1,5 @@
+# Plasmoid DylanOS Search (`com.dylanos.search`)
+
+Botón de lupa compacto para panel Plasma 6. Al pulsarlo lanza `dylanos-spotlight`; el atajo global configurado en `configs/plasma/skel/kglobalshortcutsrc` es `Ctrl+Space` (en la UI se muestra Ctrl+Espacio). No contiene el motor de búsqueda: ese vive en [DylanOS Spotlight](spotlight.md) y [`../dylanos-spotlight/backend.py`](https://github.com/dylanneymarmontalvo2014-lgtm/DylanOS/blob/development/apps/dylanos-spotlight/backend.py).
+
+QML: `contents/ui/main.qml`; metadata: `metadata.json`. El icono puede ejecutarse si `dylanos-spotlight` está instalado. Revisa el [índice de plasmoids](activeapp.md), la [guía general](../guia/guia-de-uso.md) y el [contrato del shell](https://github.com/dylanneymarmontalvo2014-lgtm/DylanOS/blob/development/scripts/tests/test_shell_contract.py).

@@ -7,7 +7,6 @@
 [![Base](https://img.shields.io/badge/base-Debian%2013-A81D33?style=flat-square&logo=debian&logoColor=white)](https://www.debian.org/)
 [![Escritorio](https://img.shields.io/badge/escritorio-KDE%20Plasma%206-1D99F3?style=flat-square&logo=kde&logoColor=white)](https://kde.org/plasma-desktop/)
 [![Qt](https://img.shields.io/badge/Qt-6.8-41CD52?style=flat-square&logo=qt&logoColor=white)](https://www.qt.io/)
-[![Estado](https://img.shields.io/badge/estado-1.1%20pre--beta-DC143C?style=flat-square)](#estado-del-proyecto)
 [![Licencia](https://img.shields.io/badge/licencia-GPL--3.0--or--later-blue?style=flat-square)](https://github.com/dylanneymarmontalvo2014-lgtm/DylanOS/blob/development/LICENSE)
 
 </div>
